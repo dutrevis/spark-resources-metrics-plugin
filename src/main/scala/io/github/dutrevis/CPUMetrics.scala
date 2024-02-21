@@ -2,6 +2,7 @@ package io.github.dutrevis
 
 import java.util.{Map => JMap}
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import org.apache.spark.SparkContext
@@ -12,13 +13,33 @@ import org.apache.spark.api.plugin.{
   SparkPlugin
 }
 
-import scala.io.Source
-
-// Collects CPU resource metrics from the unix-based operating system.
-// Use when running Spark with fisical clusters.
-
+/**
+  * Collects CPU resource metrics from a unix-based operating system.
+  * <p>
+  * Use when Spark is running in clusters with standalone, Mesos or YARN resource managers.
+  * <p>
+  * CPU metrics are obtained from the numbers of the first line of the `/proc/stat` file,
+  * available at the proc pseudo-filesystem of unix-based operating systems.
+  * These numbers identify the amount of time the CPU has spent performing
+  * different kinds of work, arranged in columns at the following order:
+  * "cpu_user", "cpu_nice", "cpu_system", "cpu_idle", "cpu_iowait", "cpu_irq" and "cpu_softirq".
+  * <p>
+  * @note All of the numbers retrieved are aggregates since the system first booted.
+  * @note Time units are in USER_HZ or Jiffies (typically hundredths of a second)
+  * @note Values for "cpu_steal", "cpu_guest" and "cpu_guest_nice", available at spectific
+  * Linux versions, are not parsed from the file.
+  */
 class CPUMetrics extends SparkPlugin {
 
+  /**
+    * Collects the aggregated CPU usage value for normal processes executing in user mode,
+    * calculates its average out of the total of CPU usage time for all processes and
+    * registers the result into the provided MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Registered value is of type LONG with precision of 2.
+    */
   def registerUserCPU(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
       MetricRegistry.name("UserCPU"),
@@ -40,6 +61,15 @@ class CPUMetrics extends SparkPlugin {
     )
   }
 
+  /**
+    * Collects the aggregated CPU usage value for niced processes (there is, run with the
+    * nice command) executing in user mode, calculates its average out of the total of the
+    * CPU usage time for all processes and registers the result into the provided MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Registered value is of type LONG with precision of 2.
+    */
   def registerNiceCPU(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
       MetricRegistry.name("NiceCPU"),
@@ -61,6 +91,15 @@ class CPUMetrics extends SparkPlugin {
     )
   }
 
+  /**
+    * Collects the aggregated CPU usage value processes executing in kernel mode,
+    * calculates its average out of the total of the CPU usage time for all processes
+    * and registers the result into the provided MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Registered value is of type LONG with precision of 2.
+    */
   def registerSystemCPU(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
       MetricRegistry.name("SystemCPU"),
@@ -82,6 +121,15 @@ class CPUMetrics extends SparkPlugin {
     )
   }
 
+  /**
+    * Collects the aggregated CPU usage value for when no processes are running,
+    * calculates its average out of the total of the CPU usage time for all processes
+    * and registers the result into the provided MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Registered value is of type LONG with precision of 2.
+    */
   def registerIdleCPU(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
       MetricRegistry.name("IdleCPU"),
@@ -103,6 +151,15 @@ class CPUMetrics extends SparkPlugin {
     )
   }
 
+  /**
+    * Collects the aggregated CPU usage value for when it's waiting for I/O to complete,
+    * calculates its average out of the total of the CPU usage time for all processes
+    * and registers the result into the provided MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Registered value is of type LONG with precision of 2.
+    */
   def registerWaitCPU(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
       MetricRegistry.name("WaitCPU"),
