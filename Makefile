@@ -54,3 +54,13 @@ help:
 	| more $(shell test $(shell uname) = Darwin && echo '--no-init --raw-control-chars')
 
 .DEFAULT_GOAL := help
+
+.PHONY: unit-tests
+## runs Scala unit tests using SBT, devlivering a coverage report at ./target/scala-{scala.version}/scoverage-report,
+## including both an XML for feed and a HTML file to be analysed in a browser.
+unit-tests:
+	@echo ""
+	@echo "Running unit tests"
+	@echo "=========="
+	@echo ""
+	@sbt clean coverage test coverageReport
