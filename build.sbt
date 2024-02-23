@@ -16,6 +16,10 @@ coverageEnabled := true
 // coverageFailOnMinimum := true
 // coverageMinimumStmtTotal := 90
 // coverageMinimumBranchTotal := 90
+// coverageMinimumStmtPerPackage := 90
+// coverageMinimumBranchPerPackage := 85
+// coverageMinimumStmtPerFile := 85
+// coverageMinimumBranchPerFile := 80
 
 // publishing to Sonatype Nexus repository and Maven
 publishMavenStyle := true
