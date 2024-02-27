@@ -249,8 +249,9 @@ class MemoryMetrics extends SparkPlugin {
     * <p>
     * @note Registered value is in kibibytes and is of type LONG.
     */
+  def registerUsedSwapMemory(metricRegistry: MetricRegistry): Unit = {
     metricRegistry.register(
-      MetricRegistry.name("CachedSwapMemory"),
+      MetricRegistry.name("UsedSwapMemory"),
       new Gauge[Long] {
         override def getValue: Long = {
           val procFile = Source.fromFile(MemoryMetrics.procFileName)
@@ -283,7 +284,7 @@ class MemoryMetrics extends SparkPlugin {
         registerBufferMemory(myContext.metricRegistry)
         registerTotalSwapMemory(myContext.metricRegistry)
         registerFreeSwapMemory(myContext.metricRegistry)
-        registerCachedSwapMemory(myContext.metricRegistry)
+        registerUsedSwapMemory(myContext.metricRegistry)
         Map.empty[String, String].asJava
       }
     }
@@ -303,7 +304,7 @@ class MemoryMetrics extends SparkPlugin {
         registerBufferMemory(myContext.metricRegistry)
         registerTotalSwapMemory(myContext.metricRegistry)
         registerFreeSwapMemory(myContext.metricRegistry)
-        registerCachedSwapMemory(myContext.metricRegistry)
+        registerUsedSwapMemory(myContext.metricRegistry)
       }
     }
   }
