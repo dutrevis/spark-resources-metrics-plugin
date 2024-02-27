@@ -156,7 +156,7 @@ class MemoryMetrics extends SparkPlugin {
 
   /**
     * Collects the `Buffers` parameter, which is the amount of memory that is used as a
-    * relatively temporary storage for raw disk blocks, amd registers the value into the
+    * relatively temporary storage for raw disk blocks, and registers the value into the
     * provided MetricRegistry.
     * <p>
     * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
@@ -240,6 +240,36 @@ class MemoryMetrics extends SparkPlugin {
   }
 
   /**
+    * Collects the `SwapCached` parameter, which is the amount of swap space used as cache
+    * memory - memory that has once been moved into swap, then back into the main memory,
+    * but still also remains in the swapfile - and registers the value into the provided
+    * MetricRegistry.
+    * <p>
+    * @param metricRegistry a MetricRegistry instance from dropwizard.metrics
+    * <p>
+    * @note Useful memory to save I/O, as it does not need to be moved into swap again.
+    * @note Registered value is in kibibytes and is of type LONG.
+    */
+  def registerCachedSwapMemory(metricRegistry: MetricRegistry): Unit = {
+    metricRegistry.register(
+      MetricRegistry.name("CachedSwapMemory"),
+      new Gauge[Long] {
+        override def getValue: Long = {
+          val procFile = Source.fromFile(MemoryMetrics.procFileName)
+          val procFileData = procFile.getLines
+            .filter(_.contains("SwapCached"))
+            .map(_.split(":"))
+            .map { case Array(k, v) => k -> v.trim().split(" ").head.toLong }
+            .toMap
+          val metricValue = procFileData("SwapCached")
+          procFile.close()
+          metricValue
+        }
+      }
+    )
+  }
+
+  /**
     * Calculates the used swap memory by collecting the `SwapTotal` parameter - the total
     * amount of swap space available on the disk - and the `SwapFree` parameter - the total
     * amount of swap space currently unused -, subtracting the value of the latter out of
@@ -284,6 +314,7 @@ class MemoryMetrics extends SparkPlugin {
         registerBufferMemory(myContext.metricRegistry)
         registerTotalSwapMemory(myContext.metricRegistry)
         registerFreeSwapMemory(myContext.metricRegistry)
+        registerCachedSwapMemory(myContext.metricRegistry)
         registerUsedSwapMemory(myContext.metricRegistry)
         Map.empty[String, String].asJava
       }
@@ -304,6 +335,7 @@ class MemoryMetrics extends SparkPlugin {
         registerBufferMemory(myContext.metricRegistry)
         registerTotalSwapMemory(myContext.metricRegistry)
         registerFreeSwapMemory(myContext.metricRegistry)
+        registerCachedSwapMemory(myContext.metricRegistry)
         registerUsedSwapMemory(myContext.metricRegistry)
       }
     }
