@@ -69,4 +69,12 @@ class MemoryMetricsTest extends AnyFunSuite {
         .isInstanceOf[Unit]
     )
   }
+
+  test("Method registerUsedSwapMemory should return Unit") {
+    assert(
+      memMetrics
+        .registerUsedSwapMemory(metricReg)
+        .isInstanceOf[Unit]
+    )
+  }
 }
