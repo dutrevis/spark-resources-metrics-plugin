@@ -10,7 +10,7 @@ trait ProcFileMetricCollector {
       originalMetricName: String
   ): Any
 
-  protected def procFileSource(): scala.io.Source = {
+  protected def getProcFileSource(): scala.io.Source = {
     Source.fromFile(procFilePath)
   }
 
