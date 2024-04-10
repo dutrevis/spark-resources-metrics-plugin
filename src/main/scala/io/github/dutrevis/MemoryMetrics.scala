@@ -34,7 +34,7 @@ import scala.io.Source
   */
 class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
 
-  protected val procFileName = "/proc/meminfo"
+  override protected val procFilePath = "/proc/meminfo"
   val metricMapping = Map[String, () => Long](
     "TotalMemory" -> collectTotalMemory,
     "FreeMemory" -> collectFreeMemory,
@@ -47,21 +47,16 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     "UsedSwapMemory" -> collectUsedSwapMemory
   )
 
-  /** Gets the value of a metric from a proc file located at the provided
-    * `procFilePath` parameter. The metric is searched according to the original
-    * name provided in the parameter `originalMetricName`. <p>
-    * @param procFilePath
-    *   full system path to the proc file used to collect the metric <p>
+  /** Gets the value of a metric from a proc file located at the `procFilePath`
+    * value set. The metric is searched according to the original name provided
+    * in the parameter `originalMetricName`. <p>
     * @param originalMetricName
     *   the original metric name by which it is found in the proc file <p>
     * @throws MatchError
     *   if a metric is not found with the provided original name
     */
-  protected def getMetricValue(
-      procFilePath: String,
-      originalMetricName: String
-  ): Long = {
-    val procFile = Source.fromFile(procFilePath)
+  override protected def getMetricValue(originalMetricName: String): Long = {
+    val procFile = getProcFileSource()
     val procFileData = procFile.getLines
       .filter(metricLine => metricLine.contains(originalMetricName))
       .map { case s: String => s.split(":") }
@@ -115,7 +110,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectTotalMemory(): Long = {
     val originalMetricName: String = "MemTotal"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Collects the `MemFree` parameter, which is the amount of physical RAM left
@@ -125,7 +120,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectFreeMemory(): Long = {
     val originalMetricName: String = "MemFree"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Calculates the total used memory, by collecting the `MemTotal` parameter -
@@ -137,8 +132,8 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectUsedMemory(): Long = {
-    val memTotal: Long = getMetricValue(procFileName, "MemTotal")
-    val memFree: Long = getMetricValue(procFileName, "MemFree")
+    val memTotal: Long = getMetricValue("MemTotal")
+    val memFree: Long = getMetricValue("MemFree")
     memTotal - memFree
   }
 
@@ -153,7 +148,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectSharedMemory(): Long = {
     val originalMetricName: String = "Shmem"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Collects the `Buffers` parameter, which is the amount of memory that is
@@ -165,7 +160,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectBufferMemory(): Long = {
     val originalMetricName: String = "Buffers"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Collects the `SwapTotal` parameter, which is the total amount of swap
@@ -176,7 +171,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectTotalSwapMemory(): Long = {
     val originalMetricName: String = "SwapTotal"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Collects the `SwapFree` parameter, which is the amount of swap space
@@ -187,7 +182,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectFreeSwapMemory(): Long = {
     val originalMetricName: String = "SwapFree"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Collects the `SwapCached` parameter, which is the amount of swap space
@@ -201,7 +196,7 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     */
   def collectCachedSwapMemory(): Long = {
     val originalMetricName: String = "SwapCached"
-    getMetricValue(procFileName, originalMetricName)
+    getMetricValue(originalMetricName)
   }
 
   /** Calculates the used swap memory by collecting the `SwapTotal` parameter -
@@ -212,8 +207,8 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectUsedSwapMemory(): Long = {
-    val swapTotal: Long = getMetricValue(procFileName, "SwapTotal")
-    val swapFree: Long = getMetricValue(procFileName, "SwapFree")
+    val swapTotal: Long = getMetricValue("SwapTotal")
+    val swapFree: Long = getMetricValue("SwapFree")
     swapTotal - swapFree
   }
 
