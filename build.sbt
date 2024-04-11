@@ -11,6 +11,8 @@ licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 libraryDependencies += "io.dropwizard.metrics" % "metrics-core" % "4.2.7"
 libraryDependencies += "org.apache.spark" %% "spark-core" % "3.5.0"
 libraryDependencies += "org.scalatest" %% "scalatest-funsuite" % "3.2.17" % "test"
+libraryDependencies += "org.mockito" %% "mockito-scala" % "1.11.3" % "test"
+libraryDependencies += "org.scalatestplus" %% "mockito-5-10" % "3.2.18.0" % "test"
 
 coverageEnabled := true
 // coverageFailOnMinimum := true
