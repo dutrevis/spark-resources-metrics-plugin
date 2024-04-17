@@ -3,8 +3,8 @@ name := "spark-resources-metrics-plugin"
 version := "0.1-SNAPSHOT"
 isSnapshot := true
 
-scalaVersion := "2.12.15"
-crossScalaVersions := Seq("2.12.15", "2.13.8")
+scalaVersion := "2.12.19"
+crossScalaVersions := Seq("2.12.19", "2.13.8")
 
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
