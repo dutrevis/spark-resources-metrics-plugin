@@ -3,7 +3,7 @@ package io.github.dutrevis
 import java.util.{Map => JMap}
 import scala.collection.JavaConverters._
 
-import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.{Gauge, Metric, MetricRegistry}
 import org.apache.spark.SparkContext
 import org.apache.spark.api.plugin.{
   DriverPlugin,
@@ -29,13 +29,17 @@ import scala.io.Source
   *   Many fields have been present since at least Linux 2.6.0, but most of the
   *   other fields are available at specific Linux versions (as noted in each
   *   method docstring) or are displayed only if the kernel was configured with
-  *   specific options. Their parsing requires caution when they are
-  *   implemented.
+  *   specific options. If these fields are not found, the metrics won't be
+  *   registered onto Dropwizard's metric system.
   */
-class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
+class MemoryMetrics(
+    val metricCollector: MeminfoMetricCollector = new MeminfoMetricCollector()
+) extends SparkPlugin {
 
-  override protected val procFilePath = "/proc/meminfo"
-  val metricMapping = Map[String, () => Long](
+  /** Maps the collector methods to their respective metric names, that will be
+    * displayed in the Dropwizard's metric system.
+    */
+  val metricMapping = Map[String, (MeminfoMetricCollector) => Long](
     "TotalMemory" -> collectTotalMemory,
     "FreeMemory" -> collectFreeMemory,
     "UsedMemory" -> collectUsedMemory,
@@ -47,59 +51,41 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     "UsedSwapMemory" -> collectUsedSwapMemory
   )
 
-  /** Gets the value of a metric from a proc file located at the `procFilePath`
-    * value set. The metric is searched according to the original name provided
-    * in the parameter `originalMetricName`. <p>
-    * @param originalMetricName
-    *   the original metric name by which it is found in the proc file <p>
-    * @throws MatchError
-    *   if a metric is not found with the provided original name
-    */
-  override protected def getMetricValue(originalMetricName: String): Long = {
-    val procFile = getProcFileSource()
-    val procFileData = procFile.getLines
-      .filter(metricLine => metricLine.contains(originalMetricName))
-      .map { case s: String => s.split(":") }
-      .map { case Array(k, v) => k -> v.trim().split(" ").head.toLong }
-      .toMap
-    val metricValue = procFileData(originalMetricName)
-    procFile.close()
-    metricValue
-  }
-
-  /** Registers an existing metric into a metric registry under a metric name as
-    * a Dropwizard's Gauge metric type - an instantaneous reading of a
-    * particular value -, by setting the provided collector method as the
-    * `getValue` method of the Gauge instance. To avoid future reading errors
-    * when the Gauge is executed by the metrics system, the collector method is
-    * called once before its registration, assuring that the metric is read with
-    * no matching errors. If a `MatchError` is thrown, the method is simply not
-    * registered, avoiding the blockage of future registrations by the plugin.
-    * <p>
+  /** Registers a provided Dropwizard's Metric instance into a metric registry
+    * under a metric name. <p>
     * @param metricRegistry
     *   a MetricRegistry instance from dropwizard.metrics <p>
     * @param metricName
     *   a metric name as a String <p>
-    * @param collectorMethod
-    *   a method without arguments that returns a metric value as a Long <p>
+    * @param metricInstance
+    *   an instance of a dropwizard's Metric class to be registered <p>
     * @throws IllegalArgumentException
     *   if the metric name is already registered
     */
-  protected def registerGaugeMetric(
+  def registerMetric(
       metricRegistry: MetricRegistry,
       metricName: String,
-      collectorMethod: () => Long
+      metricInstance: Metric
   ): Unit = {
-    try {
-      val testCall = collectorMethod()
-      metricRegistry.register(
-        MetricRegistry.name(metricName),
-        new Gauge[Long] {
-          override def getValue: Long = collectorMethod()
-        }
-      )
-    } catch {
-      case e: MatchError => Unit
+    metricRegistry.register(metricName, metricInstance)
+    ()
+  }
+
+  /** Creates a Dropwizard's Gauge metric type - an instantaneous reading of a
+    * particular value -, setting the provided collector method as the
+    * `getValue` method of the Gauge instance. <p>
+    * @param metricCollector
+    *   a MetricRegistry instance from dropwizard.metrics <p>
+    * @param collectorMethod
+    *   a method that receives the metricCollector and returns a metric value as
+    *   a Long <p>
+    */
+  def createGaugeMetric(
+      metricCollector: MeminfoMetricCollector,
+      collectorMethod: (MeminfoMetricCollector) => Long
+  ): Gauge[Long] = {
+    new Gauge[Long] {
+      override def getValue: Long = { collectorMethod(metricCollector) }
     }
   }
 
@@ -108,9 +94,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectTotalMemory(): Long = {
+  def collectTotalMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "MemTotal"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Collects the `MemFree` parameter, which is the amount of physical RAM left
@@ -118,9 +105,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectFreeMemory(): Long = {
+  def collectFreeMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "MemFree"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Calculates the total used memory, by collecting the `MemTotal` parameter -
@@ -131,9 +119,12 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectUsedMemory(): Long = {
-    val memTotal: Long = getMetricValue("MemTotal")
-    val memFree: Long = getMetricValue("MemFree")
+  def collectUsedMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
+    val memTotal: Long =
+      metricCollector.getMetricValue(procFileSource, "MemTotal")
+    val memFree: Long =
+      metricCollector.getMetricValue(procFileSource, "MemFree")
     memTotal - memFree
   }
 
@@ -146,9 +137,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectSharedMemory(): Long = {
+  def collectSharedMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "Shmem"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Collects the `Buffers` parameter, which is the amount of memory that is
@@ -158,9 +150,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectBufferMemory(): Long = {
+  def collectBufferMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "Buffers"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Collects the `SwapTotal` parameter, which is the total amount of swap
@@ -169,9 +162,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectTotalSwapMemory(): Long = {
+  def collectTotalSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "SwapTotal"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Collects the `SwapFree` parameter, which is the amount of swap space
@@ -180,9 +174,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectFreeSwapMemory(): Long = {
+  def collectFreeSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "SwapFree"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Collects the `SwapCached` parameter, which is the amount of swap space
@@ -194,9 +189,10 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectCachedSwapMemory(): Long = {
+  def collectCachedSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
     val originalMetricName: String = "SwapCached"
-    getMetricValue(originalMetricName)
+    metricCollector.getMetricValue(procFileSource, originalMetricName)
   }
 
   /** Calculates the used swap memory by collecting the `SwapTotal` parameter -
@@ -206,22 +202,36 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
     * @note
     *   Registered value is in kibibytes and is of type LONG.
     */
-  def collectUsedSwapMemory(): Long = {
-    val swapTotal: Long = getMetricValue("SwapTotal")
-    val swapFree: Long = getMetricValue("SwapFree")
+  def collectUsedSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
+    val procFileSource = metricCollector.getProcFileSource()
+    val swapTotal: Long =
+      metricCollector.getMetricValue(procFileSource, "SwapTotal")
+    val swapFree: Long =
+      metricCollector.getMetricValue(procFileSource, "SwapFree")
     swapTotal - swapFree
   }
 
   /** Returns the plugin's driver-side component. The returned DriverPlugin
-    * instance is called once early in the initialization of the Spark driver,
-    * blocking the driver's initialization during its operations, consisting of
-    * sequentially register each mapped metric as a Gauge metric into an
-    * existing metric Registry. The plugin component ends its execution once all
-    * metrics are registered, leaving to the Spark Metrics system the job of
-    * collecting and exporting the registered metrics in a pre-configured
-    * frequency. <p>
+    * instance is called once, early in the initialization of the Spark driver.
+    * The operation it performs consists in the sequential registration of each
+    * mapped metric as a Gauge metric into an existing metric Registry. A test
+    * call is executed once on each collector method before its registration,
+    * assuring that the metric is available to be read and collected from the
+    * local OS, thus preventing future errors when the Gauge is first executed
+    * by the metrics system. If a `NoSuchElementException` is thrown in this
+    * attempt, the method is not registered, enabling the registration of the
+    * subsequent mapped metrics by the plugin. The plugin component ends its
+    * execution once all metrics are registered, leaving to the Dropwizard's
+    * Metrics system the job of collecting and exporting the registered metrics
+    * in a pre or user-defined frequency. <p>
+    * @note
+    *   The driver's initialization is blocked during the operations inside
+    *   `init`, so heavy performing operations must be avoided.
+    * @note
+    *   The overriden `init` method must return a Map, that will be provided as
+    *   `extraConf` to an `ExecutorPlugin` instance.
     * @return
-    *   An empty Map, provided as `extraConf` to an `ExecutorPlugin` instance.
+    *   An instance of the `DriverPlugin`
     */
   override def driverPlugin(): DriverPlugin = {
     new DriverPlugin() {
@@ -230,27 +240,45 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
           myContext: PluginContext
       ): JMap[String, String] = {
         for (
-          (metricName: String, collectorMethod: (() => Long)) <-
+          (
+            metricName: String,
+            collectorMethod: ((MeminfoMetricCollector) => Long)
+          ) <-
             metricMapping
         )
-          registerGaugeMetric(
-            myContext.metricRegistry,
-            metricName,
-            collectorMethod
-          )
+          try {
+            var testCall = collectorMethod(metricCollector)
+            registerMetric(
+              myContext.metricRegistry,
+              MetricRegistry.name(metricName),
+              createGaugeMetric(metricCollector, collectorMethod)
+            )
+          } catch {
+            case e: NoSuchElementException => ()
+          }
         Map.empty[String, String].asJava
       }
     }
   }
 
   /** Returns the plugin's executor-side component. The returned ExecutorPlugin
-    * instance is called once early in the initialization of the executor
-    * process, blocking the executor's initialization during its operations,
-    * consisting of sequentially register each mapped metric as a Gauge metric
-    * into an existing metric Registry. The plugin component ends its execution
-    * once all metrics are registered, leaving to the Spark Metrics system the
-    * job of collecting and exporting the registered metrics in a pre-configured
-    * frequency. <p>
+    * instance is called once, early in the initialization of the executor
+    * process. The operation it performs consists in the sequential registration
+    * of each mapped metric as a Gauge metric into an existing metric Registry.
+    * A test call is executed once on each collector method before its
+    * registration, assuring that the metric is available to be read and
+    * collected from the local OS, thus preventing future errors when the Gauge
+    * is first executed by the metrics system. If a `NoSuchElementException` is
+    * thrown in this attempt, the method is not registered, enabling the
+    * registration of the subsequent mapped metrics by the plugin. The plugin
+    * component ends its execution once all metrics are registered, leaving to
+    * the Dropwizard's Metrics system the job of collecting and exporting the
+    * registered metrics in a pre or user-defined frequency. <p>
+    * @note
+    *   The executor's initialization is blocked during the operations inside
+    *   `init`, so heavy performing operations must be avoided.
+    * @return
+    *   An instance of the `ExecutorPlugin` Unit
     */
   override def executorPlugin(): ExecutorPlugin = {
     new ExecutorPlugin() {
@@ -259,14 +287,22 @@ class MemoryMetrics extends ProcFileMetricCollector with SparkPlugin {
           extraConf: JMap[String, String]
       ): Unit = {
         for (
-          (metricName: String, collectorMethod: (() => Long)) <-
+          (
+            metricName: String,
+            collectorMethod: ((MeminfoMetricCollector) => Long)
+          ) <-
             metricMapping
         )
-          registerGaugeMetric(
-            myContext.metricRegistry,
-            metricName,
-            collectorMethod
-          )
+          try {
+            var testCall = collectorMethod(metricCollector)
+            registerMetric(
+              myContext.metricRegistry,
+              MetricRegistry.name(metricName),
+              createGaugeMetric(metricCollector, collectorMethod)
+            )
+          } catch {
+            case e: NoSuchElementException => ()
+          }
       }
     }
   }
