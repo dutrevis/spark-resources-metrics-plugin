@@ -1,14 +1,15 @@
 package io.github.dutrevis
 
-import scala.io.Source
+import scala.io.{Source, BufferedSource}
 
 trait ProcFileMetricCollector {
   protected val procFilePath: String
 
-  protected def getMetricValue(originalMetricName: String): Any
+  def getMetricValue(
+      procFileSource: BufferedSource,
+      originalMetricName: String
+  ): Any
 
-  protected def getProcFileSource(): scala.io.Source = {
-    Source.fromFile(procFilePath)
-  }
+  def getProcFileSource(): scala.io.BufferedSource
 
 }
