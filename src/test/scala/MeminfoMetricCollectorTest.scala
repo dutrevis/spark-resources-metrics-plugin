@@ -25,7 +25,7 @@ class MeminfoMetricCollectorTest
         .get(".")
         .toAbsolutePath
         .getParent()
-        .resolve("src/test/scala/meminfo.test")
+        .resolve("src/test/scala/proc/meminfo")
     ),
     StandardCharsets.UTF_8
   )
@@ -80,7 +80,7 @@ class MeminfoMetricCollectorSourceTest extends AnyFunSuite with MockFactory {
         .get(".")
         .toAbsolutePath
         .getParent()
-        .resolve("src/test/scala/meminfo.test")
+        .resolve("src/test/scala/proc/meminfo")
     ),
     StandardCharsets.UTF_8
   )
