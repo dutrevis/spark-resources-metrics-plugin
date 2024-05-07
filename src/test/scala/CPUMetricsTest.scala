@@ -1,10 +1,11 @@
 import io.github.dutrevis.{CPUMetrics, StatMetricCollector}
-import org.scalatest.funsuite.AnyFunSuite
-import org.mockito.{MockitoSugar, ArgumentMatchersSugar}
+
+import com.codahale.metrics.{Gauge, Metric, MetricRegistry}
+
 import org.mockito.captor.ArgCaptor
 import org.mockito.integrations.scalatest.ResetMocksAfterEachTest
-import com.codahale.metrics.{Gauge, Metric, MetricRegistry}
-import scala.io.BufferedSource
+import org.mockito.{MockitoSugar, ArgumentMatchersSugar}
+import org.scalatest.funsuite.AnyFunSuite
 
 class CPUMetricsTest
     extends AnyFunSuite
@@ -16,11 +17,13 @@ class CPUMetricsTest
   val gaugeMock = mock[Gauge[Double]]
   val metricMock = mock[Metric]
   val metricRegistryMock = mock[MetricRegistry]
-  val procFileSourceMock = mock[BufferedSource]
   val statMetricCollectorMock = mock[StatMetricCollector]
 
+  // Arrange common values
+  val procFileContentTest = new String
+
   test("Method createGaugeMetric should return Gauge[Double]") {
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
     val collectorMethod = (s: StatMetricCollector) => { 123456.toDouble }
 
     val returnedGaugeMetric =
@@ -29,7 +32,7 @@ class CPUMetricsTest
   }
 
   test("Method registerMetric should call register") {
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
     val metricName: String = "any_metric"
 
     when(metricRegistryMock.register(any[String], any[Metric]))
@@ -41,42 +44,42 @@ class CPUMetricsTest
 
   test("Method collectUserCPU should call getMetricValue") {
     val originalMetricName: String = "cpu_user"
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     cpuMetrics.collectUserCPU(statMetricCollectorMock)
     verify(statMetricCollectorMock, times(1))
-      .getMetricValue(procFileSourceMock, originalMetricName)
+      .getMetricValue(procFileContentTest, originalMetricName)
   }
 
   test("Method collectUserCPU should call getMetricValue with args") {
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
     val originalMetricName: String = "cpu_user"
-    val procFileSourceCaptor = ArgCaptor[BufferedSource]
+    val procFileContentCaptor = ArgCaptor[String]
     val originalMetricNameCaptor = ArgCaptor[String]
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     cpuMetrics.collectUserCPU(statMetricCollectorMock)
     verify(statMetricCollectorMock).getMetricValue(
-      procFileSourceCaptor,
+      procFileContentCaptor,
       originalMetricNameCaptor
     )
-    procFileSourceCaptor hasCaptured procFileSourceMock
+    procFileContentCaptor hasCaptured procFileContentTest
     originalMetricNameCaptor hasCaptured originalMetricName
   }
 
   test("Method collectUserCPU should return Double") {
     val originalMetricName: String = "cpu_user"
     val expectedDoubleValue: Double = 79242
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       statMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -90,13 +93,13 @@ class CPUMetricsTest
   test("Method collectNiceCPU should return Double") {
     val originalMetricName: String = "cpu_nice"
     val expectedDoubleValue: Double = 0
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       statMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -110,13 +113,13 @@ class CPUMetricsTest
   test("Method collectSystemCPU should return Double") {
     val originalMetricName: String = "cpu_system"
     val expectedDoubleValue: Double = 74306
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       statMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -130,13 +133,13 @@ class CPUMetricsTest
   test("Method collectIdleCPU should return Double") {
     val originalMetricName: String = "cpu_idle"
     val expectedDoubleValue: Double = 842486413
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       statMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -150,13 +153,13 @@ class CPUMetricsTest
   test("Method collectWaitCPU should return Double") {
     val originalMetricName: String = "cpu_iowait"
     val expectedDoubleValue: Double = 756859
-    val cpuMetrics = new CPUMetrics(statMetricCollectorMock)
+    val cpuMetrics = new CPUMetrics
 
-    when(statMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(statMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       statMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
