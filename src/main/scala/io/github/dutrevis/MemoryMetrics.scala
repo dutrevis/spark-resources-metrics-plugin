@@ -12,8 +12,6 @@ import org.apache.spark.api.plugin.{
   SparkPlugin
 }
 
-import scala.io.Source
-
 /** Collects memory resource metrics from a unix-based operating system. <p> Use
   * when Spark is running in clusters with standalone, Mesos or YARN resource
   * managers. <p> Memory metrics are obtained from the numbers of each line of
@@ -32,9 +30,7 @@ import scala.io.Source
   *   specific options. If these fields are not found, the metrics won't be
   *   registered onto Dropwizard's metric system.
   */
-class MemoryMetrics(
-    val metricCollector: MeminfoMetricCollector = new MeminfoMetricCollector()
-) extends SparkPlugin {
+class MemoryMetrics extends SparkPlugin {
 
   /** Maps the collector methods to their respective metric names, that will be
     * displayed in the Dropwizard's metric system.
@@ -95,9 +91,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectTotalMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "MemTotal"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the `MemFree` parameter, which is the amount of physical RAM left
@@ -106,9 +102,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectFreeMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "MemFree"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Calculates the total used memory, by collecting the `MemTotal` parameter -
@@ -120,11 +116,11 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectUsedMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val memTotal: Long =
-      metricCollector.getMetricValue(procFileSource, "MemTotal")
+      metricCollector.getMetricValue(procFileContent, "MemTotal")
     val memFree: Long =
-      metricCollector.getMetricValue(procFileSource, "MemFree")
+      metricCollector.getMetricValue(procFileContent, "MemFree")
     memTotal - memFree
   }
 
@@ -138,9 +134,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectSharedMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "Shmem"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the `Buffers` parameter, which is the amount of memory that is
@@ -151,9 +147,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectBufferMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "Buffers"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the `SwapTotal` parameter, which is the total amount of swap
@@ -163,9 +159,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectTotalSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "SwapTotal"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the `SwapFree` parameter, which is the amount of swap space
@@ -175,9 +171,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectFreeSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "SwapFree"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the `SwapCached` parameter, which is the amount of swap space
@@ -190,9 +186,9 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectCachedSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "SwapCached"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Calculates the used swap memory by collecting the `SwapTotal` parameter -
@@ -203,11 +199,11 @@ class MemoryMetrics(
     *   Registered value is in kibibytes and is of type LONG.
     */
   def collectUsedSwapMemory(metricCollector: MeminfoMetricCollector): Long = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val swapTotal: Long =
-      metricCollector.getMetricValue(procFileSource, "SwapTotal")
+      metricCollector.getMetricValue(procFileContent, "SwapTotal")
     val swapFree: Long =
-      metricCollector.getMetricValue(procFileSource, "SwapFree")
+      metricCollector.getMetricValue(procFileContent, "SwapFree")
     swapTotal - swapFree
   }
 
@@ -239,6 +235,7 @@ class MemoryMetrics(
           sc: SparkContext,
           myContext: PluginContext
       ): JMap[String, String] = {
+        val metricCollector = new MeminfoMetricCollector
         for (
           (
             metricName: String,
@@ -286,6 +283,7 @@ class MemoryMetrics(
           myContext: PluginContext,
           extraConf: JMap[String, String]
       ): Unit = {
+        val metricCollector = new MeminfoMetricCollector
         for (
           (
             metricName: String,
