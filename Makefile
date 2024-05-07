@@ -63,4 +63,4 @@ unit-tests:
 	@echo "Running unit tests"
 	@echo "=========="
 	@echo ""
-	@sbt clean coverage test coverageReport
+	@sbt clean coverageOn test coverageReport coverageOff compile
