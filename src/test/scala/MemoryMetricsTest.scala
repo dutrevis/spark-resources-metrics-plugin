@@ -4,7 +4,6 @@ import org.mockito.{MockitoSugar, ArgumentMatchersSugar}
 import org.mockito.captor.ArgCaptor
 import org.mockito.integrations.scalatest.ResetMocksAfterEachTest
 import com.codahale.metrics.{Gauge, Metric, MetricRegistry}
-import scala.io.BufferedSource
 
 class MemoryMetricsTest
     extends AnyFunSuite
@@ -16,11 +15,13 @@ class MemoryMetricsTest
   val gaugeMock = mock[Gauge[Long]]
   val metricMock = mock[Metric]
   val metricRegistryMock = mock[MetricRegistry]
-  val procFileSourceMock = mock[BufferedSource]
   val meminfoMetricCollectorMock = mock[MeminfoMetricCollector]
 
+  // Arrange common values
+  val procFileContentTest = new String
+
   test("Method createGaugeMetric should return Gauge[Long]") {
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
     val collectorMethod = (m: MeminfoMetricCollector) => { 123456.toLong }
 
     val returnedGaugeMetric =
@@ -29,7 +30,7 @@ class MemoryMetricsTest
   }
 
   test("Method registerMetric should call register") {
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
     val metricName: String = "AnyMetric"
 
     when(metricRegistryMock.register(any[String], any[Metric]))
@@ -41,42 +42,42 @@ class MemoryMetricsTest
 
   test("Method collectTotalMemory should call getMetricValue") {
     val originalMetricName: String = "MemTotal"
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     memMetrics.collectTotalMemory(meminfoMetricCollectorMock)
     verify(meminfoMetricCollectorMock, times(1))
-      .getMetricValue(procFileSourceMock, originalMetricName)
+      .getMetricValue(procFileContentTest, originalMetricName)
   }
 
   test("Method collectTotalMemory should call getMetricValue with args") {
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
     val originalMetricName: String = "MemTotal"
-    val procFileSourceCaptor = ArgCaptor[BufferedSource]
+    val procFileContentCaptor = ArgCaptor[String]
     val originalMetricNameCaptor = ArgCaptor[String]
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     memMetrics.collectTotalMemory(meminfoMetricCollectorMock)
     verify(meminfoMetricCollectorMock).getMetricValue(
-      procFileSourceCaptor,
+      procFileContentCaptor,
       originalMetricNameCaptor
     )
-    procFileSourceCaptor hasCaptured procFileSourceMock
+    procFileContentCaptor hasCaptured procFileContentTest
     originalMetricNameCaptor hasCaptured originalMetricName
   }
 
   test("Method collectTotalMemory should return Long") {
     val originalMetricName: String = "MemTotal"
     val expectedLongValue: Long = 1921988
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -95,13 +96,13 @@ class MemoryMetricsTest
   test("Method collectFreeMemory should return Long") {
     val originalMetricName: String = "MemFree"
     val expectedLongValue: Long = 1374408
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -122,20 +123,20 @@ class MemoryMetricsTest
     val originalMetricNameMemFree: String = "MemFree"
     val expectecMemTotalValue: Long = 1921988
     val expectecMemFreeValue: Long = 1374408
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricNameMemTotal
       )
     )
       .thenReturn(expectecMemTotalValue)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricNameMemFree
       )
     )
@@ -154,13 +155,13 @@ class MemoryMetricsTest
   test("Method collectSharedMemory should return Long") {
     val originalMetricName: String = "Shmem"
     val expectedLongValue: Long = 196
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -179,13 +180,13 @@ class MemoryMetricsTest
   test("Method collectBufferMemory should return Long") {
     val originalMetricName: String = "Buffers"
     val expectedLongValue: Long = 32688
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -204,13 +205,13 @@ class MemoryMetricsTest
   test("Method collectTotalSwapMemory should return Long") {
     val originalMetricName: String = "SwapTotal"
     val expectedLongValue: Long = 1048572
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -229,13 +230,13 @@ class MemoryMetricsTest
   test("Method collectFreeSwapMemory should return Long") {
     val originalMetricName: String = "SwapFree"
     val expectedLongValue: Long = 1048572
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -251,13 +252,13 @@ class MemoryMetricsTest
   test("Method collectCachedSwapMemory should return Long") {
     val originalMetricName: String = "SwapCached"
     val expectedLongValue: Long = 0
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricName
       )
     )
@@ -275,20 +276,20 @@ class MemoryMetricsTest
     val originalMetricNameSwapFree: String = "SwapFree"
     val expectecSwapTotalValue: Long = 1048572
     val expectecSwapFreeValue: Long = 1048572
-    val memMetrics = new MemoryMetrics(meminfoMetricCollectorMock)
+    val memMetrics = new MemoryMetrics
 
-    when(meminfoMetricCollectorMock.getProcFileSource())
-      .thenReturn(procFileSourceMock)
+    when(meminfoMetricCollectorMock.getProcFileContent())
+      .thenReturn(procFileContentTest)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricNameSwapTotal
       )
     )
       .thenReturn(expectecSwapTotalValue)
     when(
       meminfoMetricCollectorMock.getMetricValue(
-        procFileSourceMock,
+        procFileContentTest,
         originalMetricNameSwapFree
       )
     )
