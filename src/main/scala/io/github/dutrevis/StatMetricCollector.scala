@@ -1,13 +1,13 @@
 package io.github.dutrevis
 
-import scala.io.{Source, BufferedSource}
-
-class StatMetricCollector(
-    sourceMethod: String => BufferedSource = Source.fromFile
-) extends ProcFileMetricCollector {
+class StatMetricCollector extends ProcFileMetricCollector {
 
   override val procFilePath = "/proc/stat"
 
+  /** A List with the names of the columns present in the `/proc/stat` file.
+    * They are used as keys of a Map that points to the values collected from
+    * the file. <p>
+    */
   val procFileCPUColumns = List(
     "cpu_user",
     "cpu_nice",
@@ -18,25 +18,25 @@ class StatMetricCollector(
     "cpu_softirq"
   )
 
-  /** Gets the value of a metric from a proc file located at the `procFilePath`
-    * value set. The metric is searched according to the original name provided
-    * in the parameter `originalMetricName`. <p>
-    * @param procFileSource
-    *   a BufferedSource instance, with access to the desired proc file <p>
+  /** Gets the value of a metric from the content of a proc file provided. The
+    * metric is searched according to the original name provided in the
+    * parameter `originalMetricName`. <p>
+    * @param procFileContent
+    *   a String with the content of the desired proc file <p>
     * @param originalMetricName
     *   the original metric name by which it is found in the proc file <p>
     * @return
-    *   the metric value as Long
+    *   the metric value as Double
     * @throws NoSuchElementException
     *   if a metric is not found with the provided original name
     */
   override def getMetricValue(
-      procFileSource: BufferedSource,
+      procFileContent: String,
       originalMetricName: String
   ): Double = {
     val procFileData = (procFileCPUColumns
       .zip(
-        procFileSource.getLines
+        procFileContent.linesIterator
           .take(1)
           .mkString
           .split(" +")
@@ -46,15 +46,7 @@ class StatMetricCollector(
       .toMap)
     val metricValue =
       procFileData(originalMetricName) / procFileData.foldLeft(0.0)(_ + _._2)
-    procFileSource.close()
     metricValue
   }
 
-  /** Access and buffers a proc file located at the `procFilePath`. <p>
-    * @return
-    *   a `BufferedSource` instance of the file read
-    */
-  override def getProcFileSource(): scala.io.BufferedSource = {
-    sourceMethod(procFilePath)
-  }
 }
