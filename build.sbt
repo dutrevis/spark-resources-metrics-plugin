@@ -14,9 +14,8 @@ libraryDependencies += "org.mockito" %% "mockito-scala" % "1.17.31" % "test"
 libraryDependencies += "org.scalamock" %% "scalamock" % "5.1.0" % "test"
 libraryDependencies += "org.scalatest" %% "scalatest-funsuite" % "3.2.17" % "test"
 
-coverageEnabled := true
-// coverageFailOnMinimum := true
-// coverageMinimumStmtTotal := 90
+// https://github.com/scoverage/sbt-scoverage/issues/84
+Default / coverageEnabled := false
 // coverageMinimumBranchTotal := 90
 // coverageMinimumStmtPerPackage := 90
 // coverageMinimumBranchPerPackage := 85
