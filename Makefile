@@ -64,3 +64,14 @@ unit-tests:
 	@echo "=========="
 	@echo ""
 	@sbt clean coverageOn test coverageReport coverageOff compile
+
+.PHONY: create-package
+## creates a JAR file using SBT written at ./target/scala-{scala.version}/{package}_{version}.jar,
+## containing the files in src/main/scala. Includes the `coverageOff` paramenter to turn off coverage
+## during packaging, avoiding the `NoClassDefFoundError` exception for scoverage plugin.
+create-package:
+	@echo ""
+	@echo "Creating JAR package"
+	@echo "=========="
+	@echo ""
+	@sbt coverageOff clean package
