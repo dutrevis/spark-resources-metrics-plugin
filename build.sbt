@@ -4,7 +4,7 @@ version := "0.1-SNAPSHOT"
 isSnapshot := true
 
 scalaVersion := "2.12.19"
-crossScalaVersions := Seq("2.12.19", "2.13.8")
+crossScalaVersions := Seq("2.12.19", "2.13.13")
 
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
