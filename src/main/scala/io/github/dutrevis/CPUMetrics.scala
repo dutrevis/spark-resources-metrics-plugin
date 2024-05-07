@@ -2,7 +2,6 @@ package io.github.dutrevis
 
 import java.util.{Map => JMap}
 import scala.collection.JavaConverters._
-import scala.io.Source
 
 import com.codahale.metrics.{Gauge, Metric, MetricRegistry}
 import org.apache.spark.SparkContext
@@ -21,8 +20,6 @@ import org.apache.spark.api.plugin.{
   * spent performing different kinds of work, arranged in columns at the
   * following order: "cpu_user", "cpu_nice", "cpu_system", "cpu_idle",
   * "cpu_iowait", "cpu_irq" and "cpu_softirq". <p>
-  * @param metricCollector
-  *   a StatMetricCollector instance <p>
   * @note
   *   All of the numbers retrieved are aggregates since the system first booted.
   * @note
@@ -31,9 +28,7 @@ import org.apache.spark.api.plugin.{
   *   Values for "cpu_steal", "cpu_guest" and "cpu_guest_nice", available at
   *   spectific Linux versions, are not parsed from the file.
   */
-class CPUMetrics(
-    val metricCollector: StatMetricCollector = new StatMetricCollector()
-) extends SparkPlugin {
+class CPUMetrics extends SparkPlugin {
 
   /** Maps the collector methods to their respective metric names, that will be
     * displayed in the Dropwizard's metric system.
@@ -93,9 +88,9 @@ class CPUMetrics(
     *   Collected value is of type Double with precision of 2.
     */
   def collectUserCPU(metricCollector: StatMetricCollector): Double = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "cpu_user"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the aggregated CPU usage value for niced processes (there is, run
@@ -107,9 +102,9 @@ class CPUMetrics(
     *   Collected value is of type Double with precision of 2.
     */
   def collectNiceCPU(metricCollector: StatMetricCollector): Double = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "cpu_nice"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the aggregated CPU usage value processes executing in kernel mode
@@ -121,9 +116,9 @@ class CPUMetrics(
     *   Collected value is of type Double with precision of 2.
     */
   def collectSystemCPU(metricCollector: StatMetricCollector): Double = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "cpu_system"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the aggregated CPU usage value for when no processes are running,
@@ -135,9 +130,9 @@ class CPUMetrics(
     *   Collected value is of type Double with precision of 2.
     */
   def collectIdleCPU(metricCollector: StatMetricCollector): Double = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "cpu_idle"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Collects the aggregated CPU usage value for when it's waiting for I/O to
@@ -149,9 +144,9 @@ class CPUMetrics(
     *   Collected value is of type Double with precision of 2.
     */
   def collectWaitCPU(metricCollector: StatMetricCollector): Double = {
-    val procFileSource = metricCollector.getProcFileSource()
+    val procFileContent = metricCollector.getProcFileContent()
     val originalMetricName: String = "cpu_iowait"
-    metricCollector.getMetricValue(procFileSource, originalMetricName)
+    metricCollector.getMetricValue(procFileContent, originalMetricName)
   }
 
   /** Returns the plugin's driver-side component. The returned DriverPlugin
@@ -182,6 +177,7 @@ class CPUMetrics(
           sc: SparkContext,
           myContext: PluginContext
       ): JMap[String, String] = {
+        val metricCollector = new StatMetricCollector
         for (
           (
             metricName: String,
@@ -229,6 +225,7 @@ class CPUMetrics(
           myContext: PluginContext,
           extraConf: JMap[String, String]
       ): Unit = {
+        val metricCollector = new StatMetricCollector
         for (
           (
             metricName: String,
