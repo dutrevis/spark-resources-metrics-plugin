@@ -16,6 +16,9 @@ libraryDependencies += "org.scalatest" %% "scalatest-funsuite" % "3.2.17" % "tes
 
 // https://github.com/scoverage/sbt-scoverage/issues/84
 Default / coverageEnabled := false
+Test / test / coverageMinimumStmtTotal := 60
+Test / test / coverageFailOnMinimum := false
+Test / test / coverageHighlighting := true
 // coverageMinimumBranchTotal := 90
 // coverageMinimumStmtPerPackage := 90
 // coverageMinimumBranchPerPackage := 85
