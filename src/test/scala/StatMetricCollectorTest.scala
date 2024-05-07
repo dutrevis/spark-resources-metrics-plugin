@@ -1,23 +1,17 @@
 import io.github.dutrevis.StatMetricCollector
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalamock.scalatest.MockFactory
 import org.mockito.{MockitoSugar, ArgumentMatchersSugar}
 import org.mockito.integrations.scalatest.ResetMocksAfterEachTest
 import org.mockito.captor.ArgCaptor
-import scala.io.{Source, BufferedSource}
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.nio.charset.{StandardCharsets, Charset}
+import java.nio.file.{Files, Path}
 
 class StatMetricCollectorTest
     extends AnyFunSuite
     with MockitoSugar
     with ArgumentMatchersSugar
     with ResetMocksAfterEachTest {
-
-  // Arrange common mocks
-  val procFileSourceMock = mock[BufferedSource]
 
   // Arrange common values
   val procFileDataTest = Map[String, Long](
@@ -30,10 +24,10 @@ class StatMetricCollectorTest
     "cpu_softirq" -> 67701
   )
 
-  val procFileContent: String = new String(
+  val procFileContentTest: String = new String(
     Files.readAllBytes(
-      Paths
-        .get(".")
+      Path
+        .of(".")
         .toAbsolutePath
         .getParent()
         .resolve("src/test/scala/proc/stat")
@@ -42,10 +36,7 @@ class StatMetricCollectorTest
   )
 
   test("Method getMetricValue should return specific Double value") {
-    val metricCollector = new StatMetricCollector()
-    val procFileSourceTest = (new BufferedSource(
-      new ByteArrayInputStream(procFileContent.getBytes)
-    ))
+    val metricCollector = new StatMetricCollector
     val originalMetricName: String = "cpu_user"
     val expectedDoubleValue: Double =
       procFileDataTest(originalMetricName) / procFileDataTest.foldLeft(0.0)(
@@ -53,65 +44,17 @@ class StatMetricCollectorTest
       )
 
     assertResult(expectedDoubleValue) {
-      metricCollector.getMetricValue(procFileSourceTest, originalMetricName)
+      metricCollector.getMetricValue(procFileContentTest, originalMetricName)
     }
-  }
-
-  test("Method getMetricValue should call BufferedSource.getLines") {
-    val metricCollector = new StatMetricCollector()
-    val procFileSourceTest = (new BufferedSource(
-      new ByteArrayInputStream(procFileContent.getBytes)
-    ))
-    val originalMetricName: String = "cpu_user"
-
-    when(procFileSourceMock.getLines())
-      .thenReturn(procFileSourceTest.getLines())
-
-    metricCollector.getMetricValue(procFileSourceMock, originalMetricName)
-
-    verify(procFileSourceMock, times(1)).getLines()
   }
 
   test("Method getMetricValue should throw NoSuchElementException") {
-    val metricCollector = new StatMetricCollector()
-    val procFileSourceTest = (new BufferedSource(
-      new ByteArrayInputStream(procFileContent.getBytes)
-    ))
+    val metricCollector = new StatMetricCollector
     val originalMetricName: String = "wrong_metric"
 
-    when(procFileSourceMock.getLines())
-      .thenReturn(procFileSourceTest.getLines())
     assertThrows[NoSuchElementException](
-      metricCollector.getMetricValue(procFileSourceMock, originalMetricName)
+      metricCollector.getMetricValue(procFileContentTest, originalMetricName)
     )
-  }
-}
-
-class StatMetricCollectorSourceTest extends AnyFunSuite with MockFactory {
-  val procFileContent: String = new String(
-    Files.readAllBytes(
-      Paths
-        .get(".")
-        .toAbsolutePath
-        .getParent()
-        .resolve("src/test/scala/proc/stat")
-    ),
-    StandardCharsets.UTF_8
-  )
-
-  test("Method getProcFileSource should return specific BufferedSource") {
-    val sourceMethod = mockFunction[String, BufferedSource]
-    val metricCollector = new StatMetricCollector(sourceMethod)
-    val sourceTest = (new BufferedSource(
-      new ByteArrayInputStream(procFileContent.getBytes)
-    ))
-    sourceMethod
-      .expects(metricCollector.procFilePath)
-      .returns(sourceTest)
-
-    assertResult(sourceTest) {
-      metricCollector.getProcFileSource()
-    }
   }
 
 }
