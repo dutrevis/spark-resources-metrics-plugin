@@ -1,8 +1,5 @@
 name := "spark-resources-metrics-plugin"
 
-version := "0.1-SNAPSHOT"
-isSnapshot := true
-
 scalaVersion := "2.12.19"
 crossScalaVersions := Seq("2.12.19", "2.13.13")
 
@@ -22,3 +19,30 @@ Test / test / coverageHighlighting := true
 // coverageMinimumBranchPerPackage := 85
 // coverageMinimumStmtPerFile := 85
 // coverageMinimumBranchPerFile := 80
+
+inThisBuild(
+  List(
+    organization := "io.github.dutrevis",
+    description := """
+        Spark Resource Metrics plugin is an Apache Spark plugin that
+        registers metrics onto the Apache Spark metrics system, that
+        will sink values collected from operational system's resources,
+        aiming to cover metrics that the Spark metrics system do not
+        provide, like the Ganglia monitoring system metrics.
+    """,
+    homepage := Some(
+      url("https://github.com/dutrevis/spark-resources-metrics-plugin")
+    ),
+    licenses := List(
+      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+    ),
+    developers := List(
+      Developer(
+        id = "dutrevis",
+        name = "Eduardo Trevisani",
+        email = "",
+        url = url("https://github.com/dutrevis")
+      )
+    )
+  )
+)
