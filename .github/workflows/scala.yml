@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check Scala formatting
-        run: sbt scalafmtSbtCheck scalafmtCheck test:scalafmtCheckz
+        run: sbt scalafmtSbtCheck scalafmtCheck Test/scalafmtCheck
 
   publish:
     runs-on: ubuntu-latest
