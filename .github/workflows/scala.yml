@@ -1,0 +1,75 @@
+name: Scala CI
+
+on:
+  push:
+    branches:
+      - main
+      - development
+  pull_request:
+    branches:
+      - main
+      - development
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: sbt coverageOn coverage test
+      - name: Generate coverage Report
+        run: sbt coverageReport
+      - name: Upload coverage Report to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Scala formatting
+        run: sbt scalafmtSbtCheck scalafmtCheck Test/scalafmtCheck
+
+  publish:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    needs:
+      - test
+      - lint
+    strategy:
+      matrix:
+        java-version: [8, 11, 17]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Java ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+          cache: sbt
+      - name: Build and release with SBT
+        run: sbt ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
+  dependency-graph:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    needs:
+      - publish
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Dependency Graph
+        uses: scalacenter/sbt-dependency-submission@v3
