@@ -43,18 +43,15 @@ jobs:
     needs:
       - test
       - lint
-    strategy:
-      matrix:
-        java-version: [8, 11, 17]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Java ${{ matrix.java-version }}
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.java-version }}
+          java-version: 17
           cache: sbt
       - name: Build and release with SBT
         run: sbt ci-release
