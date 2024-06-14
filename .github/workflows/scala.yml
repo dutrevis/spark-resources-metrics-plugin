@@ -39,7 +39,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
     needs:
       - test
       - lint
@@ -63,7 +63,7 @@ jobs:
 
   dependency-graph:
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main'
+    if: github.ref == 'refs/heads/main'
     needs:
       - publish
     permissions:
