@@ -39,7 +39,7 @@ inThisBuild(
     developers := List(
       Developer(
         id = "dutrevis",
-        name = "Eduardo Trevisani",
+        name = "Eduardo Trevisani Gamba",
         email = "",
         url = url("https://github.com/dutrevis")
       )
