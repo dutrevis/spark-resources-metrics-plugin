@@ -1,11 +1,11 @@
 # Spark Resources Metrics Plugin
 
-<br/>
+<!-- <br/>
 <p align="center">
     <a href="https://github.com/dutrevis/spark-resources-metrics-plugin" target="_blank">
         <img width="20%" src="./docs/img/spark_resources_metrics_logo.png" alt="Spark Resrouces Metrics Plugin logo">
     </a>
-</p>
+</p> -->
 
 `Spark Resources Metrics plugin` is an Apache Spark plugin that registers metrics onto the Apache Spark metrics system, that will sink values collected from operational system's resources, aiming to cover metrics that the Spark metrics system do not provide, like the Ganglia monitoring system metrics.
 
