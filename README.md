@@ -247,9 +247,8 @@ Then run your Spark job and check the output of a Graphite plaintext protocol re
 
 The plugin was developed using the technologies below, but feel free to try other solutions when contributing!
 
-|||
-|-:|:-|
 |Developed to: | ![Apache Spark](https://img.shields.io/badge/Apache%20Spark%202/3-black?style=for-the-badge&logo=apachespark&logoColor=e25a1c)|
+|-:|:-|
 |Language: | ![Scala](https://img.shields.io/badge/scala%202.12/2.13-black.svg?style=for-the-badge&logo=scala&logoColor=DC322F)|
 |CI: | ![GitHub Actions](https://img.shields.io/badge/github%20actions-black.svg?style=for-the-badge&logo=githubactions&logoColor=2671E5)|
 |Public distribution:|![SonarQube](https://img.shields.io/badge/sonatype%20nexus-black?style=for-the-badge&logo=sonatype&logoColor=05bb6e)|
