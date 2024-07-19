@@ -24,7 +24,7 @@ inThisBuild(
   List(
     organization := "io.github.dutrevis",
     description := """
-        Spark Resource Metrics plugin is an Apache Spark plugin that
+        Spark Resources Metrics plugin is an Apache Spark plugin that
         registers metrics onto the Apache Spark metrics system, that
         will sink values collected from operational system's resources,
         aiming to cover metrics that the Spark metrics system do not
