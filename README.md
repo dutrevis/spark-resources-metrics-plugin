@@ -7,7 +7,7 @@
     </a>
 </p>
 
-`Spark Resources Metrics plugin` is an Apache Spark plugin that registers metrics onto the Apache Spark metrics system, that will sink values collected from operational system's resources, aiming to cover metrics that the Spark metrics system do not provide, like the Ganglia monitoring system metrics.
+`Spark Resources Metrics plugin` is an Apache Spark plugin that registers metrics onto the Apache Spark metrics system, that will sink values collected from operational system's resources, aiming to cover metrics that the Spark metrics system does not provide, like the Ganglia monitoring system metrics.
 
 
 | Latest Version | Build | Coverage |
@@ -34,7 +34,7 @@
 
 | *Releases* | Scala 2.12 | Scala 2.13 |
 |:---------- | :--------: | :--------: |
-| Maven Central | [![Maven Central (Latest Release for Scala 2.12)](https://img.shields.io/maven-central/v/io.github.dutrevis/spark-resources-metrics-plugin_2.12.svg?label=maven%20central&color=6d3eed)](https://search.maven.org/search?q=g:%22io.github.dutrevis%22%20AND%20a:%22spark-resources-metrics-plugin_2.12%22)| [![Maven Central (Latest Release for Scala 2.12)](https://img.shields.io/maven-central/v/io.github.dutrevis/spark-resources-metrics-plugin_2.12.svg?label=maven%20central&color=6d3eed)](https://search.maven.org/search?q=g:%22io.github.dutrevis%22%20AND%20a:%22spark-resources-metrics-plugin_2.12%22) |
+| Maven Central | [![Maven Central (Latest Release for Scala 2.12)](https://img.shields.io/maven-central/v/io.github.dutrevis/spark-resources-metrics-plugin_2.12.svg?label=maven%20central&color=6d3eed)](https://central.sonatype.com/artifact/io.github.dutrevis/spark-resources-metrics-plugin_2.12) | [![Maven Central (Latest Release for Scala 2.13)](https://img.shields.io/maven-central/v/io.github.dutrevis/spark-resources-metrics-plugin_2.13.svg?label=maven%20central&color=6d3eed)](https://central.sonatype.com/artifact/io.github.dutrevis/spark-resources-metrics-plugin_2.13) |
 | Sonatype Nexus | [![Sonatype Nexus (Latest Release for Scala 2.12)](https://img.shields.io/nexus/r/io.github.dutrevis/spark-resources-metrics-plugin_2.12.svg?server=https://s01.oss.sonatype.org&color=05bb6e)](https://s01.oss.sonatype.org/content/repositories/releases/io/github/dutrevis/spark-resources-metrics-plugin_2.12/) | [![Sonatype Nexus (Latest Release for Scala 2.13)](https://img.shields.io/nexus/r/io.github.dutrevis/spark-resources-metrics-plugin_2.13.svg?server=https://s01.oss.sonatype.org&color=05bb6e)](https://s01.oss.sonatype.org/content/repositories/releases/io/github/dutrevis/spark-resources-metrics-plugin_2.13/) |
 | Snapshot | [![Sonatype Nexus (Latest Snapshot for Scala 2.12)](https://img.shields.io/nexus/s/io.github.dutrevis/spark-resources-metrics-plugin_2.12.svg?server=https://s01.oss.sonatype.org&color=05bb6e)](https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/dutrevis/spark-resources-metrics-plugin_2.12/) | [![Sonatype Nexus (Latest Snapshot for Scala 2.13)](https://img.shields.io/nexus/s/io.github.dutrevis/spark-resources-metrics-plugin_2.13.svg?server=https://s01.oss.sonatype.org&color=05bb6e)](https://s01.oss.sonatype.org/content/repositories/snapshots/io/github/dutrevis/spark-resources-metrics-plugin_2.13/) |
 
@@ -247,11 +247,11 @@ Then run your Spark job and check the output of a Graphite plaintext protocol re
 
 The plugin was developed using the technologies below, but feel free to try other solutions when contributing!
 
-|Developed to: | ![Apache Spark](https://img.shields.io/badge/Apache%20Spark%202/3-black?style=for-the-badge&logo=apachespark&logoColor=e25a1c)|
+|Developed to: | [![Apache Spark](https://img.shields.io/badge/Apache%20Spark%202/3-black?style=for-the-badge&logo=apachespark&logoColor=e25a1c)](https://spark.apache.org/)|
 |-:|:-|
-|Language: | ![Scala](https://img.shields.io/badge/scala%202.12/2.13-black.svg?style=for-the-badge&logo=scala&logoColor=DC322F)|
-|CI: | ![GitHub Actions](https://img.shields.io/badge/github%20actions-black.svg?style=for-the-badge&logo=githubactions&logoColor=2671E5)|
-|Public distribution:|![SonarQube](https://img.shields.io/badge/sonatype%20nexus-black?style=for-the-badge&logo=sonatype&logoColor=05bb6e)|
+|Language: | [![Scala](https://img.shields.io/badge/scala%202.12/2.13-black.svg?style=for-the-badge&logo=scala&logoColor=DC322F)](https://www.scala-lang.org/)|
+|CI: | [![GitHub Actions](https://img.shields.io/badge/github%20actions-black.svg?style=for-the-badge&logo=githubactions&logoColor=2671E5)](https://docs.github.com/pt/actions)|
+|Public distribution:|[![Sonartype](https://img.shields.io/badge/sonatype%20nexus-black?style=for-the-badge&logo=sonatype&logoColor=05bb6e)](https://help.sonatype.com/en/sonatype-nexus-repository.html)|
 
 The source code compiles and runs in these Scala versions:
 
@@ -306,7 +306,7 @@ classDiagram
 
 ## Prior art
 
-`Spark Resources Metrics plugin` is inspired by [cerndb/SparkPlugins](https://github.com/cerndb/SparkPlugins) and [LucaCanali/sparkMeasure](http://chriskempson.com/projects/base16/).
+`Spark Resources Metrics plugin` is inspired by [cerndb/SparkPlugins](https://github.com/cerndb/SparkPlugins) and [LucaCanali/sparkMeasure](https://github.com/LucaCanali/sparkMeasure).
 
 Conceptually, `Spark Resources Metrics plugin` is very similar to [SparkPlugins](https://github.com/cerndb/SparkPlugins), but:
 
