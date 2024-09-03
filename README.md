@@ -42,7 +42,7 @@
 
 ### Preparation
 
-The `Spark Resources Metrics plugin` is intended to be used togheter with the native [Spark metrics system (click for details)](https://spark.apache.org/docs/latest/monitoring.html#metrics). In order to properlly show the metric values collected by this plugin, the Spark metrics system has to be set to report metrics on the plugin's supported Spark components, which currently are:
+The `Spark Resources Metrics plugin` is intended to be used together with the native [Spark metrics system (click for details)](https://spark.apache.org/docs/latest/monitoring.html#metrics). In order to properly show the metric values collected by this plugin, the Spark metrics system has to be set to report metrics on the plugin's supported Spark components, which currently are:
 
 - `driver`
 - `executor`
@@ -134,7 +134,7 @@ After the package is installed, these classes may be activated by being declared
 
 </details><br>
 
-> :memo: **Note:** as seen on [Spark docs](https://spark.apache.org/docs/latest/configuration.html#dynamically-loading-spark-properties), properties set programatically on the Spark Context take highest precedence, then flags passed through CLI calls like `spark-submit` or `spark-shell`, then options in the `spark-defaults.conf` file.
+> :memo: **Note:** as seen on [Spark docs](https://spark.apache.org/docs/latest/configuration.html#dynamically-loading-spark-properties), properties set programmatically on the Spark Context take highest precedence, then flags passed through CLI calls like `spark-submit` or `spark-shell`, then options in the `spark-defaults.conf` file.
 
 ### Usage
 
