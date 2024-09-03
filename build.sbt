@@ -20,6 +20,11 @@ Test / test / coverageHighlighting := true
 // coverageMinimumStmtPerFile := 85
 // coverageMinimumBranchPerFile := 80
 
+Global / excludeLintKeys += coverageEnabled
+Global / excludeLintKeys += coverageMinimumStmtTotal
+Global / excludeLintKeys += coverageFailOnMinimum
+Global / excludeLintKeys += coverageHighlighting
+
 inThisBuild(
   List(
     organization := "io.github.dutrevis",
